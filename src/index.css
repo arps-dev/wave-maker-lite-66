@@ -1,0 +1,261 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Retro Memories Design System - Vintage College Fest Theme */
+
+@layer base {
+  :root {
+    /* Retro Color Palette */
+    --background: 35 25% 96%;
+    --foreground: 25 15% 15%;
+
+    --card: 40 30% 98%;
+    --card-foreground: 25 15% 15%;
+
+    --popover: 40 30% 98%;
+    --popover-foreground: 25 15% 15%;
+
+    /* Vintage Teal Primary */
+    --primary: 170 35% 41%;
+    --primary-foreground: 35 25% 96%;
+
+    /* Warm Cream Secondary */
+    --secondary: 42 28% 90%;
+    --secondary-foreground: 25 15% 15%;
+
+    /* Soft Vintage Muted */
+    --muted: 38 20% 85%;
+    --muted-foreground: 25 15% 45%;
+
+    /* Retro Orange Accent */
+    --accent: 22 78% 52%;
+    --accent-foreground: 35 25% 96%;
+
+    /* Vintage Purple */
+    --retro-purple: 258 39% 45%;
+    --retro-purple-foreground: 35 25% 96%;
+
+    /* Warm Vintage Tones */
+    --warm-cream: 42 35% 92%;
+    --vintage-teal: 170 35% 41%;
+    --sunset-orange: 22 78% 52%;
+    --retro-purple: 258 39% 45%;
+    --sepia-brown: 25 35% 65%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 35 25% 96%;
+
+    --border: 38 20% 85%;
+    --input: 38 20% 85%;
+    --ring: 170 35% 41%;
+
+    --radius: 12px;
+
+    /* Retro Gradients */
+    --gradient-sunset: linear-gradient(135deg, hsl(22 78% 52%), hsl(35 65% 58%), hsl(42 72% 65%));
+    --gradient-vintage: linear-gradient(135deg, hsl(170 35% 41%), hsl(180 25% 55%), hsl(170 35% 65%));
+    --gradient-retro: linear-gradient(135deg, hsl(258 39% 45%), hsl(280 35% 55%), hsl(258 39% 65%));
+    --gradient-warm: linear-gradient(135deg, hsl(42 35% 92%), hsl(35 30% 88%));
+    --gradient-hero: linear-gradient(135deg, 
+      hsl(22 78% 52% / 0.9), 
+      hsl(258 39% 45% / 0.8), 
+      hsl(170 35% 41% / 0.9)
+    );
+
+    /* Shadows & Effects */
+    --shadow-polaroid: 0 4px 15px hsl(25 15% 15% / 0.15), 0 2px 8px hsl(25 15% 15% / 0.1);
+    --shadow-retro: 0 8px 25px hsl(25 15% 15% / 0.12);
+    --shadow-vintage: 0 2px 10px hsl(25 15% 15% / 0.08);
+
+    /* Textures & Patterns */
+    --noise-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+
+    --sidebar-background: 40 30% 98%;
+    --sidebar-foreground: 25 15% 15%;
+    --sidebar-primary: 170 35% 41%;
+    --sidebar-primary-foreground: 35 25% 96%;
+    --sidebar-accent: 38 20% 85%;
+    --sidebar-accent-foreground: 25 15% 15%;
+    --sidebar-border: 38 20% 85%;
+    --sidebar-ring: 170 35% 41%;
+  }
+
+  .dark {
+    /* Dark mode retro theme */
+    --background: 25 20% 8%;
+    --foreground: 42 35% 92%;
+    
+    --card: 25 20% 10%;
+    --card-foreground: 42 35% 92%;
+    
+    --primary: 170 45% 55%;
+    --primary-foreground: 25 20% 8%;
+    
+    --secondary: 25 15% 15%;
+    --secondary-foreground: 42 35% 92%;
+    
+    --accent: 22 78% 60%;
+    --accent-foreground: 25 20% 8%;
+    
+    --retro-purple: 258 45% 65%;
+    --retro-purple-foreground: 25 20% 8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-fredoka;
+    background-image: var(--noise-pattern);
+  }
+}
+
+@layer components {
+  /* Retro Typography */
+  .retro-heading {
+    @apply font-fredoka font-bold text-foreground;
+  }
+  
+  .retro-handwritten {
+    @apply font-caveat;
+  }
+  
+  /* Polaroid Photo Frame */
+  .polaroid-frame {
+    @apply bg-card p-4 pb-8 transform transition-transform duration-300 hover:scale-105 hover:-rotate-1;
+    box-shadow: var(--shadow-polaroid);
+    border-radius: 4px;
+  }
+  
+  /* Retro Button Styles */
+  .btn-retro {
+    @apply px-6 py-3 rounded-full font-medium transition-all duration-300;
+    background: var(--gradient-sunset);
+    box-shadow: var(--shadow-vintage);
+  }
+  
+  .btn-retro:hover {
+    @apply transform -translate-y-1;
+    box-shadow: var(--shadow-retro);
+  }
+  
+  /* Gradient Backgrounds */
+  .bg-gradient-sunset {
+    background: var(--gradient-sunset);
+  }
+  
+  .bg-gradient-vintage {
+    background: var(--gradient-vintage);
+  }
+  
+  .bg-gradient-retro {
+    background: var(--gradient-retro);
+  }
+  
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  /* Retro Cards */
+  .retro-card {
+    @apply bg-card border border-border rounded-lg p-6;
+    box-shadow: var(--shadow-vintage);
+  }
+  
+  /* Vintage Sticker Effects */
+  .vintage-sticker {
+    @apply absolute transform -rotate-12 px-3 py-1 rounded-full text-sm font-medium;
+    background: var(--gradient-sunset);
+    box-shadow: var(--shadow-vintage);
+  }
+  
+  /* Retro Animations */
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .retro-shimmer {
+    @apply relative overflow-hidden;
+  }
+  
+  .retro-shimmer::before {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.1),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+}
+
+@layer utilities {
+  /* Custom Retro Colors */
+  .text-retro-purple {
+    color: hsl(var(--retro-purple));
+  }
+  
+  .bg-retro-purple {
+    background-color: hsl(var(--retro-purple));
+  }
+  
+  .text-warm-cream {
+    color: hsl(var(--warm-cream));
+  }
+  
+  .bg-warm-cream {
+    background-color: hsl(var(--warm-cream));
+  }
+  
+  .text-vintage-teal {
+    color: hsl(var(--vintage-teal));
+  }
+  
+  .bg-vintage-teal {
+    background-color: hsl(var(--vintage-teal));
+  }
+  
+  .text-sunset-orange {
+    color: hsl(var(--sunset-orange));
+  }
+  
+  .bg-sunset-orange {
+    background-color: hsl(var(--sunset-orange));
+  }
+}
+
+/* Retro Keyframes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
