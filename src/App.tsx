@@ -3,12 +3,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import SearchPage from "./pages/SearchPage";
 import Gallery from "./pages/Gallery";
 import GoldenMoments from "./pages/GoldenMoments";
 import Profile from "./pages/Profile";
-import SignUp from "./pages/SignUp";
+import Auth from "./pages/Auth";
 import Upload from "./pages/Upload";
 import Events from "./pages/Events";
 import SingleImage from "./pages/SingleImage";
@@ -30,6 +31,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AuthProvider>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/memory/:memoryId" element={<Index />} />
@@ -39,7 +41,7 @@ const App = () => (
           <Route path="/golden-moments" element={<GoldenMoments />} />
           <Route path="/golden-moment/:momentId" element={<GoldenMoments />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/events" element={<Events />} />
           <Route path="/about" element={<About />} />
@@ -53,6 +55,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

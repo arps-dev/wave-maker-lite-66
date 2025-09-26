@@ -1,438 +1,382 @@
-import { useState, useRef, useEffect } from 'react';
-import { User, Heart, Image, Star, MapPin, Calendar, Edit3, Settings, Camera, Award, Trophy, Zap, Crown } from 'lucide-react';
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import RetroImage from '@/components/RetroImage';
-import heroCollage from '@/assets/hero-collage.webp';
-import polaroid1 from '@/assets/polaroid-1.webp';
-import polaroid2 from '@/assets/polaroid-2.webp';
-import polaroid3 from '@/assets/polaroid-3.webp';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera, Mail, Phone, MapPin, Calendar, Trophy, Star, Heart, Upload, Edit, Settings, LogOut, Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Profile = () => {
-  const [activeTab, setActiveTab] = useState('photos');
-  const heroRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { user, profile, signOut, updateProfile, loading } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileData, setProfileData] = useState({
+    username: "",
+    display_name: "",
+    bio: "",
+    avatar_url: ""
+  });
 
-  // Subtle parallax background
+  // Redirect to auth if not logged in
   useEffect(() => {
-    const handleScroll = () => {
-      const y = window.scrollY || 0;
-      if (heroRef.current) {
-        heroRef.current.style.transform = `translateY(${y * 0.05}px) scale(1.1)`;
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
 
-  const userProfile = {
-    name: 'Alex Johnson',
-    username: '@alexj2023',
-    bio: 'Computer Science Graduate • Photography Enthusiast • Memory Collector 📸',
-    location: 'Delhi, India',
-    joinDate: 'August 2022',
-    graduationYear: '2023',
-    course: 'B.Tech Computer Science',
-    avatar: polaroid1,
-    stats: {
-      photos: 156,
-      likes: 2847,
-      followers: 324,
-      following: 198
+  // Update local profile data when profile changes
+  useEffect(() => {
+    if (profile) {
+      setProfileData({
+        username: profile.username || "",
+        display_name: profile.display_name || "",
+        bio: profile.bio || "",
+        avatar_url: profile.avatar_url || ""
+      });
+    }
+  }, [profile]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setProfileData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      const { error } = await updateProfile(profileData);
+      
+      if (error) {
+        toast({
+          title: "Update Failed",
+          description: error.message || "Failed to update profile.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setIsEditing(false);
+      toast({
+        title: "Profile Updated! ✨",
+        description: "Your profile changes have been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await signOut();
+      
+      if (error) {
+        toast({
+          title: "Logout Failed",
+          description: error.message || "Failed to log out.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Logged out successfully! 👋",
+        description: "See you next time!",
+      });
+      
+      navigate("/");
+    } catch (error) {
+      toast({
+        title: "Logout Failed",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-warm flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    return null;
+  }
+
   const achievements = [
-    { 
-      title: 'Photography Master', 
-      description: 'Uploaded 100+ photos', 
-      icon: Camera, 
-      gradient: 'bg-gradient-sunset',
-      earned: true
-    },
-    { 
-      title: 'Social Butterfly', 
-      description: 'Got 1000+ total likes', 
-      icon: Heart, 
-      gradient: 'bg-gradient-vintage',
-      earned: true
-    },
-    { 
-      title: 'Memory Keeper', 
-      description: 'Active for 1+ year', 
-      icon: Star, 
-      gradient: 'bg-gradient-retro',
-      earned: true
-    },
-    { 
-      title: 'Trendsetter', 
-      description: 'Top photo of the month', 
-      icon: Trophy, 
-      gradient: 'bg-gradient-sunset',
-      earned: false
-    }
-  ];
-
-  const recentPhotos = [
-    {
-      id: 1,
-      image: polaroid1,
-      title: 'Graduation Day',
-      likes: 256,
-      date: '2 days ago'
-    },
-    {
-      id: 2,
-      image: polaroid2,
-      title: 'College Fest',
-      likes: 189,
-      date: '1 week ago'
-    },
-    {
-      id: 3,
-      image: polaroid3,
-      title: 'Friends Forever',
-      likes: 145,
-      date: '2 weeks ago'
-    },
-    {
-      id: 4,
-      image: polaroid1,
-      title: 'Sports Day',
-      likes: 98,
-      date: '3 weeks ago'
-    }
-  ];
-
-  const favoriteMemories = [
-    {
-      id: 1,
-      title: 'First Day Jitters',
-      image: polaroid2,
-      description: 'The nervous excitement of starting college',
-      date: 'August 15, 2022'
-    },
-    {
-      id: 2,
-      title: 'Late Night Study Sessions',
-      image: polaroid3,
-      description: 'Coffee-fueled exam preparations with friends',
-      date: 'December 10, 2022'
-    },
-    {
-      id: 3,
-      title: 'Farewell Emotions',
-      image: polaroid1,
-      description: 'Bittersweet goodbye to the best 4 years',
-      date: 'May 30, 2023'
-    }
+    { id: 1, name: "First Upload", icon: Upload, count: profile.total_uploads >= 1 },
+    { id: 2, name: "Photo Enthusiast", icon: Camera, count: profile.total_uploads >= 10 },
+    { id: 3, name: "Popular Creator", icon: Heart, count: profile.total_likes_received >= 100 },
+    { id: 4, name: "Community Member", icon: Star, count: profile.total_likes_received >= 50 }
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Background with parallax */}
-      <div 
-        ref={heroRef} 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 ease-out"
-        style={{
-          backgroundImage: `url(${heroCollage})`,
-          transform: 'translateZ(0) scale(1.1)'
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/20" />
-        <div className="absolute inset-0 bg-white/8" />
-      </div>
+    <div className="min-h-screen bg-gradient-warm">
+      {/* Header */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+            ← Back to Home
+          </Link>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
+          </div>
+        </div>
 
-      {/* Content */}
-      <div className="relative z-10">
-        <Header />
-        
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-          {/* Profile Header */}
-          <div className="max-w-4xl mx-auto mb-12 animate-fade-in">
-            <div className="retro-card relative">
-              {/* Profile Info */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-6 sm:space-y-0 sm:space-x-8">
-                {/* Avatar */}
-                <div className="relative">
-                  <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-white shadow-retro">
-                    <img 
-                      src={userProfile.avatar} 
-                      alt={userProfile.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 bg-gradient-sunset p-3 rounded-full shadow-vintage">
-                    <Camera className="h-5 w-5 text-white" />
-                  </div>
+        {/* Profile Header */}
+        <Card className="retro-card border-2 mb-8">
+          <CardContent className="pt-8">
+            <div className="text-center mb-8">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <Avatar className="h-32 w-32 border-4 border-white shadow-retro">
+                  <AvatarImage src={profileData.avatar_url || undefined} alt="Profile" />
+                  <AvatarFallback className="text-2xl font-bold bg-gradient-sunset text-white">
+                    {(profileData.display_name || profileData.username || user.email || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div>
+                  <h1 className="retro-heading text-3xl text-foreground mb-2">
+                    {profileData.display_name || profileData.username || 'User'}
+                  </h1>
+                  <p className="text-muted-foreground text-lg mb-1">
+                    @{profileData.username || 'user'}
+                  </p>
+                  <p className="text-muted-foreground flex items-center justify-center space-x-1">
+                    <Calendar className="h-4 w-4" />
+                    <span>Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                  </p>
                 </div>
 
-                {/* Profile Details */}
-                <div className="flex-1 text-center sm:text-left space-y-4">
-                  <div>
-                    <h1 className="retro-heading text-3xl sm:text-4xl font-bold text-foreground mb-2">
-                      {userProfile.name}
-                    </h1>
-                    <p className="text-muted-foreground text-lg retro-handwritten">
-                      {userProfile.username}
-                    </p>
-                    <p className="text-foreground/80 text-base mt-2">
-                      {userProfile.bio}
-                    </p>
-                  </div>
+                <div className="retro-handwritten text-center text-muted-foreground text-lg leading-relaxed max-w-md">
+                  {profileData.bio || "No bio added yet. Tell us about yourself!"}
+                </div>
 
-                  {/* Stats */}
-                  <div className="flex justify-center sm:justify-start space-x-8">
-                    <div className="text-center">
-                      <div className="retro-heading text-2xl font-bold text-foreground">{userProfile.stats.photos}</div>
-                      <div className="text-sm text-muted-foreground">Photos</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="retro-heading text-2xl font-bold text-foreground">{userProfile.stats.likes}</div>
-                      <div className="text-sm text-muted-foreground">Likes</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="retro-heading text-2xl font-bold text-foreground">{userProfile.stats.followers}</div>
-                      <div className="text-sm text-muted-foreground">Followers</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="retro-heading text-2xl font-bold text-foreground">{userProfile.stats.following}</div>
-                      <div className="text-sm text-muted-foreground">Following</div>
-                    </div>
-                  </div>
-
-                  {/* Additional Info */}
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-muted-foreground">
-                    <div className="flex items-center justify-center sm:justify-start space-x-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{userProfile.location}</span>
-                    </div>
-                    <div className="flex items-center justify-center sm:justify-start space-x-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Joined {userProfile.joinDate}</span>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex justify-center sm:justify-start space-x-3">
-                    <Button 
-                      className="px-6 py-3 text-sm font-medium text-white rounded-full transition-all duration-300 transform hover:-translate-y-1"
-                      style={{ background: 'var(--gradient-sunset)' }}
-                    >
-                      <Edit3 className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className="px-6 py-3 text-sm font-medium rounded-full border-2 border-primary/30 hover:border-primary/50 transition-all duration-300"
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Settings
-                    </Button>
-                  </div>
+                <div className="flex justify-center space-x-2">
+                  <Button
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="btn-retro text-white font-medium"
+                    style={{
+                      background: 'var(--gradient-sunset)',
+                      border: 'none'
+                    }}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    {isEditing ? 'Cancel' : 'Edit Profile'}
+                  </Button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Achievements Section */}
-          <div className="max-w-6xl mx-auto mb-12 animate-fade-in delay-300">
-            <h2 className="retro-heading text-2xl sm:text-3xl font-bold text-white text-center mb-8">
-              Achievements & Badges
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {achievements.map((achievement, index) => {
-                const IconComponent = achievement.icon;
-                return (
-                  <div 
-                    key={index}
-                    className={`retro-card text-center relative overflow-hidden transition-all duration-300 hover:-translate-y-2 ${!achievement.earned ? 'opacity-60' : 'hover:shadow-retro'}`}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    {!achievement.earned && (
-                      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10 flex items-center justify-center">
-                        <span className="text-white/80 text-sm font-medium">Not Earned</span>
-                      </div>
-                    )}
-                    
-                    <div className={`${achievement.gradient} p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-vintage`}>
-                      <IconComponent className="h-8 w-8 text-white" />
+              {/* Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="retro-card text-center">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-center space-x-2 mb-2">
+                      <Upload className="h-5 w-5 text-primary" />
+                      <span className="text-2xl font-bold retro-heading">{profile.total_uploads}</span>
                     </div>
-                    
-                    <h3 className="retro-heading text-lg font-semibold text-foreground mb-2">
-                      {achievement.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      {achievement.description}
-                    </p>
-                  </div>
-                );
-              })}
+                    <p className="text-muted-foreground">Photos Uploaded</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="retro-card text-center">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-center space-x-2 mb-2">
+                      <Heart className="h-5 w-5 text-red-500" />
+                      <span className="text-2xl font-bold retro-heading">{profile.total_likes_received}</span>
+                    </div>
+                    <p className="text-muted-foreground">Total Likes</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="retro-card text-center">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-center space-x-2 mb-2">
+                      <Trophy className="h-5 w-5 text-yellow-500" />
+                      <span className="text-2xl font-bold retro-heading">{profile.achievements.length}</span>
+                    </div>
+                    <p className="text-muted-foreground">Achievements</p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Content Tabs */}
-          <div className="max-w-6xl mx-auto animate-fade-in delay-500">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-8 bg-card/80 backdrop-blur-sm border border-border/50 rounded-full p-1">
-                <TabsTrigger 
-                  value="photos" 
-                  className="rounded-full py-3 px-6 text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-sunset data-[state=active]:text-white"
-                >
-                  <Image className="h-4 w-4 mr-2" />
-                  Recent Photos
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="favorites" 
-                  className="rounded-full py-3 px-6 text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-vintage data-[state=active]:text-white"
-                >
-                  <Heart className="h-4 w-4 mr-2" />
-                  Favorites
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="about" 
-                  className="rounded-full py-3 px-6 text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-retro data-[state=active]:text-white"
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  About
-                </TabsTrigger>
-              </TabsList>
+        {/* Main Content */}
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="profile">Profile Settings</TabsTrigger>
+            <TabsTrigger value="achievements">Achievements</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile" className="space-y-6">
+            <Card className="retro-card border-2">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5" />
+                  <span>Profile Information</span>
+                </CardTitle>
+                <CardDescription>
+                  Update your profile information and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="display_name">Display Name</Label>
+                    <Input
+                      id="display_name"
+                      value={profileData.display_name}
+                      onChange={(e) => handleInputChange("display_name", e.target.value)}
+                      disabled={!isEditing}
+                      className="retro-input"
+                      placeholder="Your full name"
+                    />
+                  </div>
 
-              <TabsContent value="photos" className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {recentPhotos.map((photo, index) => (
-                    <div 
-                      key={photo.id}
-                      className="group animate-fade-in"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="retro-card hover:shadow-retro transition-all duration-300 hover:-translate-y-2">
-                        <RetroImage 
-                          src={photo.image} 
-                          alt={photo.title} 
-                          variant="polaroid" 
-                          size="full" 
-                          aspectRatio="square" 
-                          rotation="random" 
-                          className="mb-4" 
-                        />
-                        <div className="space-y-2">
-                          <h3 className="retro-heading text-foreground font-semibold">{photo.title}</h3>
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center space-x-1 text-muted-foreground">
-                              <Heart className="h-4 w-4 text-sunset-orange" />
-                              <span>{photo.likes}</span>
-                            </div>
-                            <span className="text-muted-foreground text-xs">{photo.date}</span>
-                          </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      value={profileData.username}
+                      onChange={(e) => handleInputChange("username", e.target.value)}
+                      disabled={!isEditing}
+                      className="retro-input"
+                      placeholder="@username"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4" />
+                      <span>Email</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={user.email || ""}
+                      disabled={true}
+                      className="retro-input bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">Email cannot be changed from here</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="avatar_url">Avatar URL</Label>
+                    <Input
+                      id="avatar_url"
+                      value={profileData.avatar_url}
+                      onChange={(e) => handleInputChange("avatar_url", e.target.value)}
+                      disabled={!isEditing}
+                      className="retro-input"
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">Bio</Label>
+                    <Textarea
+                      id="bio"
+                      value={profileData.bio}
+                      onChange={(e) => handleInputChange("bio", e.target.value)}
+                      disabled={!isEditing}
+                      className="retro-input min-h-[100px]"
+                      placeholder="Tell us about yourself..."
+                    />
+                  </div>
+
+                  {isEditing && (
+                    <div className="flex space-x-4 pt-4">
+                      <Button 
+                        onClick={handleSave}
+                        className="btn-retro text-white font-medium"
+                        style={{
+                          background: 'var(--gradient-vintage)',
+                          border: 'none'
+                        }}
+                      >
+                        Save Changes
+                      </Button>
+                      <Button 
+                        onClick={() => setIsEditing(false)}
+                        variant="outline"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="achievements" className="space-y-6">
+            <Card className="retro-card border-2">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Trophy className="h-5 w-5" />
+                  <span>Your Achievements</span>
+                </CardTitle>
+                <CardDescription>
+                  Track your progress and unlock new badges
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {achievements.map((achievement) => {
+                    const IconComponent = achievement.icon;
+                    return (
+                      <div
+                        key={achievement.id}
+                        className={`p-4 rounded-lg border-2 flex items-center space-x-4 ${
+                          achievement.count 
+                            ? 'border-green-300 bg-green-50 dark:bg-green-950/20' 
+                            : 'border-border bg-muted/50'
+                        }`}
+                      >
+                        <div className={`p-3 rounded-full ${
+                          achievement.count ? 'bg-green-500' : 'bg-muted'
+                        }`}>
+                          <IconComponent className={`h-6 w-6 ${
+                            achievement.count ? 'text-white' : 'text-muted-foreground'
+                          }`} />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">{achievement.name}</h3>
+                          <Badge variant={achievement.count ? "default" : "secondary"}>
+                            {achievement.count ? "Earned" : "Not Earned"}
+                          </Badge>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="favorites" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {favoriteMemories.map((memory, index) => (
-                    <div 
-                      key={memory.id}
-                      className="group animate-fade-in"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="retro-card hover:shadow-retro transition-all duration-300 hover:-translate-y-2">
-                        <div className="flex space-x-4">
-                          <RetroImage 
-                            src={memory.image} 
-                            alt={memory.title} 
-                            variant="polaroid" 
-                            size="sm" 
-                            aspectRatio="square" 
-                            rotation="slight" 
-                            className="flex-shrink-0" 
-                          />
-                          <div className="space-y-3">
-                            <div>
-                              <h3 className="retro-heading text-lg font-semibold text-foreground mb-2">
-                                {memory.title}
-                              </h3>
-                              <p className="text-muted-foreground text-sm leading-relaxed">
-                                {memory.description}
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3" />
-                              <span>{memory.date}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="about" className="space-y-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Academic Info */}
-                  <div className="retro-card animate-fade-in">
-                    <h3 className="retro-heading text-xl font-semibold text-foreground mb-6 flex items-center space-x-2">
-                      <Award className="h-5 w-5 text-vintage-teal" />
-                      <span>Academic Journey</span>
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Course</label>
-                        <p className="text-foreground font-medium">{userProfile.course}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Graduation Year</label>
-                        <p className="text-foreground font-medium">{userProfile.graduationYear}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">College Experience</label>
-                        <p className="text-foreground/80 text-sm leading-relaxed">
-                          Four amazing years filled with learning, friendships, and unforgettable memories. 
-                          From nervous freshman days to confident graduation moments.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Personal Interests */}
-                  <div className="retro-card animate-fade-in delay-200">
-                    <h3 className="retro-heading text-xl font-semibold text-foreground mb-6 flex items-center space-x-2">
-                      <Star className="h-5 w-5 text-sunset-orange" />
-                      <span>Interests & Hobbies</span>
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex flex-wrap gap-2">
-                        {['Photography', 'Coding', 'Music', 'Sports', 'Travel', 'Art'].map((interest, index) => (
-                          <span 
-                            key={index}
-                            className="px-3 py-2 bg-gradient-vintage text-white text-sm rounded-full shadow-sm font-medium"
-                          >
-                            {interest}
-                          </span>
-                        ))}
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Favorite Quote</label>
-                        <p className="text-foreground/80 text-sm italic retro-handwritten mt-1">
-                          "Collect moments, not things. Every photo tells a story worth remembering."
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </main>
-
-        <Footer />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
