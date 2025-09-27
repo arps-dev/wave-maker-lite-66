@@ -8,8 +8,6 @@ import Footer from '@/components/Footer';
 import RetroImage from '@/components/RetroImage';
 import MomentDetailsModal from '@/components/MomentDetailsModal';
 import CreateMomentModal from '@/components/CreateMomentModal';
-import { usePosts, Post } from '@/hooks/usePosts';
-import { useAuth } from '@/hooks/useAuth';
 import heroCollage from '@/assets/hero-collage.webp';
 import polaroid1 from '@/assets/polaroid-1.webp';
 import polaroid2 from '@/assets/polaroid-2.webp';
@@ -111,54 +109,31 @@ const goldenMoments = [{
 const GoldenMoments = () => {
   const { momentId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { getSavedPosts, toggleLike, toggleSave, sharePost } = usePosts();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [savedPosts, setSavedPosts] = useState<Post[]>([]);
+  const [likedMoments, setLikedMoments] = useState<Set<number>>(new Set([1, 3, 6]));
+  const [bookmarkedMoments, setBookmarkedMoments] = useState<Set<number>>(new Set([2, 4]));
   const [selectedMoment, setSelectedMoment] = useState<any>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [loading, setLoading] = useState(true);
   const heroRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-
-  // Load saved posts (Golden Moments)
-  useEffect(() => {
-    const loadSavedPosts = async () => {
-      try {
-        setLoading(true);
-        const posts = await getSavedPosts();
-        setSavedPosts(posts);
-      } catch (error) {
-        console.error('Error loading saved posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      loadSavedPosts();
-    } else {
-      setSavedPosts([]);
-      setLoading(false);
-    }
-  }, [user, getSavedPosts]);
+  const {
+    toast
+  } = useToast();
 
   // Check for shared moment URL and open modal
   useEffect(() => {
     if (momentId) {
-      const sharedMoment = [...goldenMoments, ...savedPosts].find(moment => 
-        moment.id === parseInt(momentId) || moment.id === momentId
-      );
+      const sharedMoment = goldenMoments.find(moment => moment.id === parseInt(momentId));
       if (sharedMoment) {
         setSelectedMoment(sharedMoment);
         setShowDetailsModal(true);
       } else {
+        // If moment not found, redirect to main page
         navigate('/golden-moments', { replace: true });
       }
     }
-  }, [momentId, navigate, savedPosts]);
+  }, [momentId, navigate]);
 
   // Parallax and scroll handling
   useEffect(() => {
@@ -174,60 +149,60 @@ const GoldenMoments = () => {
     });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  const handleLike = async (momentId: string | number) => {
-    if (typeof momentId === 'string') {
-      // Real post from database
-      await toggleLike(momentId);
-      const posts = await getSavedPosts();
-      setSavedPosts(posts);
-    } else {
-      // Legacy mock data - keep existing functionality
+  const handleLike = (momentId: number) => {
+    const newLiked = new Set(likedMoments);
+    if (newLiked.has(momentId)) {
+      newLiked.delete(momentId);
       toast({
-        title: "Demo mode",
-        description: "This is demo data. Sign in and create real posts to use this feature!",
-        variant: "default"
+        title: "Removed from favorites",
+        description: "Golden moment removed from favorites"
+      });
+    } else {
+      newLiked.add(momentId);
+      toast({
+        title: "Added to favorites ❤️",
+        description: "Golden moment added to favorites"
       });
     }
+    setLikedMoments(newLiked);
   };
-  const handleBookmark = async (momentId: string | number) => {
-    if (typeof momentId === 'string') {
-      // Real post from database
-      await toggleSave(momentId);
-      const posts = await getSavedPosts();
-      setSavedPosts(posts);
-    } else {
-      // Legacy mock data - keep existing functionality  
+  const handleBookmark = (momentId: number) => {
+    const newBookmarked = new Set(bookmarkedMoments);
+    if (newBookmarked.has(momentId)) {
+      newBookmarked.delete(momentId);
       toast({
-        title: "Demo mode",
-        description: "This is demo data. Sign in and create real posts to use this feature!",
-        variant: "default"
+        title: "Removed bookmark",
+        description: "Golden moment removed from bookmarks"
+      });
+    } else {
+      newBookmarked.add(momentId);
+      toast({
+        title: "Bookmarked! 🔖",
+        description: "Golden moment bookmarked for later"
       });
     }
+    setBookmarkedMoments(newBookmarked);
   };
   const handleShare = async (moment: any) => {
-    const shareText = `Check out this golden moment: ${moment.title || moment.subtitle}`;
+    const shareText = `Check out this golden moment: ${moment.title} - ${moment.subtitle}`;
     const shareUrl = `${window.location.origin}/golden-moment/${moment.id}`;
-    
-    // If it's a real post, record the share
-    if (typeof moment.id === 'string') {
-      await sharePost(moment.id);
-    }
     
     // Check if Web Share API is available and supported
     if (navigator.share && navigator.canShare && navigator.canShare({ url: shareUrl })) {
       try {
         await navigator.share({
-          title: moment.title || 'Golden Moment',
+          title: moment.title,
           text: shareText,
           url: shareUrl
         });
         return;
       } catch (err) {
+        // If share fails, fall through to clipboard
         console.log('Share failed, falling back to clipboard');
       }
     }
     
-    // Fallback to clipboard
+    // Fallback to clipboard - only copy URL
     try {
       await navigator.clipboard.writeText(shareUrl);
       toast({
@@ -235,6 +210,7 @@ const GoldenMoments = () => {
         description: "Golden moment link copied to clipboard"
       });
     } catch (err) {
+      // Final fallback - create text area and copy only URL
       const textArea = document.createElement('textarea');
       textArea.value = shareUrl;
       document.body.appendChild(textArea);
@@ -295,30 +271,7 @@ const GoldenMoments = () => {
     count: 7,
     gradient: 'bg-gradient-retro'
   }];
-  // Combine mock data with real saved posts
-  const allMoments = [
-    ...goldenMoments,
-    ...savedPosts.map(post => ({
-      id: post.id,
-      title: post.title || 'Saved Moment',
-      subtitle: post.description || 'A special memory',
-      image: post.media_url || polaroid1,
-      date: new Date(post.created_at).toLocaleDateString(),
-      likes: post.likes_count || 0,
-      location: post.location || 'Unknown',
-      category: post.category || 'saved',
-      badge: {
-        text: 'Saved',
-        icon: Bookmark,
-        color: 'bg-gradient-vintage'
-      },
-      tags: post.tags || []
-    }))
-  ];
-
-  const filteredMoments = allMoments.filter(moment => 
-    selectedCategory === 'all' || moment.category === selectedCategory
-  );
+  const filteredMoments = goldenMoments.filter(moment => selectedCategory === 'all' || moment.category === selectedCategory);
   return <div className="min-h-screen relative overflow-hidden">
       {/* Funky Animated Background */}
       <div ref={heroRef} className="fixed inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 ease-out" style={{
@@ -421,11 +374,11 @@ const GoldenMoments = () => {
                       
                       {/* Action Buttons */}
                       <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-all duration-300 flex space-x-2">
-                        <button onClick={() => handleLike(moment.id)} className={`p-3 rounded-full shadow-vintage transition-all duration-300 hover:scale-105 ${(moment as any).user_liked ? 'bg-sunset-orange text-white' : 'bg-white/90 backdrop-blur-sm hover:bg-white text-sunset-orange'}`}>
-                          <Heart className={`h-5 w-5 ${(moment as any).user_liked ? 'fill-current' : ''}`} />
+                        <button onClick={() => handleLike(moment.id)} className={`p-3 rounded-full shadow-vintage transition-all duration-300 hover:scale-105 ${likedMoments.has(moment.id) ? 'bg-sunset-orange text-white' : 'bg-white/90 backdrop-blur-sm hover:bg-white text-sunset-orange'}`}>
+                          <Heart className={`h-5 w-5 ${likedMoments.has(moment.id) ? 'fill-current' : ''}`} />
                         </button>
-                        <button onClick={() => handleBookmark(moment.id)} className={`p-3 rounded-full shadow-vintage transition-all duration-300 hover:scale-105 ${(moment as any).user_saved ? 'bg-vintage-teal text-white' : 'bg-white/90 backdrop-blur-sm hover:bg-white text-vintage-teal'}`}>
-                          <Bookmark className={`h-5 w-5 ${(moment as any).user_saved ? 'fill-current' : ''}`} />
+                        <button onClick={() => handleBookmark(moment.id)} className={`p-3 rounded-full shadow-vintage transition-all duration-300 hover:scale-105 ${bookmarkedMoments.has(moment.id) ? 'bg-vintage-teal text-white' : 'bg-white/90 backdrop-blur-sm hover:bg-white text-vintage-teal'}`}>
+                          <Bookmark className={`h-5 w-5 ${bookmarkedMoments.has(moment.id) ? 'fill-current' : ''}`} />
                         </button>
                         <button onClick={() => handleShare(moment)} className="bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-vintage hover:bg-white transition-all duration-300 hover:scale-105 text-retro-purple">
                           <Share2 className="h-5 w-5" />
@@ -454,9 +407,9 @@ const GoldenMoments = () => {
 
                       {/* Stats Row */}
                       <div className="flex items-center justify-between">
-                        <button onClick={() => handleLike(moment.id)} className={`flex items-center space-x-2 transition-all duration-300 hover:scale-105 font-medium ${(moment as any).user_liked ? 'text-sunset-orange' : 'text-muted-foreground hover:text-sunset-orange'}`}>
-                          <Heart className={`h-5 w-5 ${(moment as any).user_liked ? 'fill-current' : ''}`} />
-                          <span>{moment.likes}</span>
+                        <button onClick={() => handleLike(moment.id)} className={`flex items-center space-x-2 transition-all duration-300 hover:scale-105 font-medium ${likedMoments.has(moment.id) ? 'text-sunset-orange' : 'text-muted-foreground hover:text-sunset-orange'}`}>
+                          <Heart className={`h-5 w-5 ${likedMoments.has(moment.id) ? 'fill-current' : ''}`} />
+                          <span>{moment.likes + (likedMoments.has(moment.id) ? 1 : 0)}</span>
                         </button>
                       </div>
 
@@ -518,14 +471,7 @@ const GoldenMoments = () => {
         <Footer />
 
         {/* Modals */}
-        <MomentDetailsModal 
-          moment={selectedMoment} 
-          isOpen={showDetailsModal} 
-          onClose={handleCloseModal} 
-          onLike={handleLike} 
-          onBookmark={handleBookmark} 
-          onShare={handleShare} 
-        />
+        <MomentDetailsModal moment={selectedMoment} isOpen={showDetailsModal} onClose={handleCloseModal} onLike={handleLike} onBookmark={handleBookmark} onShare={handleShare} likedMoments={likedMoments} bookmarkedMoments={bookmarkedMoments} />
 
         <CreateMomentModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
       </div>

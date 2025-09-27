@@ -7,7 +7,7 @@ import RetroImage from './RetroImage';
 
 interface MomentDetailsModalProps {
   moment: {
-    id: string | number;
+    id: number;
     title: string;
     subtitle: string;
     image: string;
@@ -17,14 +17,14 @@ interface MomentDetailsModalProps {
     category: string;
     badge: { text: string; icon: any; color: string };
     tags: string[];
-    user_liked?: boolean;
-    user_saved?: boolean;
   } | null;
   isOpen: boolean;
   onClose: () => void;
-  onLike: (momentId: string | number) => void;
-  onBookmark: (momentId: string | number) => void;
+  onLike: (momentId: number) => void;
+  onBookmark: (momentId: number) => void;
   onShare: (moment: any) => void;
+  likedMoments: Set<number>;
+  bookmarkedMoments: Set<number>;
 }
 
 const MomentDetailsModal = ({
@@ -33,7 +33,9 @@ const MomentDetailsModal = ({
   onClose,
   onLike,
   onBookmark,
-  onShare
+  onShare,
+  likedMoments,
+  bookmarkedMoments
 }: MomentDetailsModalProps) => {
   const { toast } = useToast();
   const [newComment, setNewComment] = useState('');
@@ -116,13 +118,13 @@ const MomentDetailsModal = ({
                     variant="outline"
                     size="lg"
                     className={`flex items-center space-x-2 transition-all duration-300 hover:scale-105 ${
-                      moment.user_liked 
+                      likedMoments.has(moment.id) 
                         ? 'bg-sunset-orange text-white border-sunset-orange hover:bg-sunset-orange/90' 
                         : 'hover:bg-sunset-orange hover:text-white hover:border-sunset-orange'
                     }`}
                   >
-                    <Heart className={`h-5 w-5 ${moment.user_liked ? 'fill-current' : ''}`} />
-                    <span>{moment.likes}</span>
+                    <Heart className={`h-5 w-5 ${likedMoments.has(moment.id) ? 'fill-current' : ''}`} />
+                    <span>{moment.likes + (likedMoments.has(moment.id) ? 1 : 0)}</span>
                   </Button>
 
                   <Button
@@ -130,12 +132,12 @@ const MomentDetailsModal = ({
                     variant="outline"
                     size="lg"
                     className={`flex items-center space-x-2 transition-all duration-300 hover:scale-105 ${
-                      moment.user_saved 
+                      bookmarkedMoments.has(moment.id) 
                         ? 'bg-vintage-teal text-white border-vintage-teal hover:bg-vintage-teal/90' 
                         : 'hover:bg-vintage-teal hover:text-white hover:border-vintage-teal'
                     }`}
                   >
-                    <Bookmark className={`h-5 w-5 ${moment.user_saved ? 'fill-current' : ''}`} />
+                    <Bookmark className={`h-5 w-5 ${bookmarkedMoments.has(moment.id) ? 'fill-current' : ''}`} />
                     <span>Save</span>
                   </Button>
 

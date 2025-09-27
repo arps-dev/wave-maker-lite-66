@@ -1,14 +1,12 @@
-import { Camera, Home, Image, Clock, Search, User, Menu, X, Upload, LogIn } from "lucide-react";
+import { Camera, Home, Image, Clock, Search, User, Menu, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
   
   const handleUpload = () => {
     navigate("/upload");
@@ -33,7 +31,7 @@ const Header = () => {
     { to: "/gallery", icon: Image, label: "Gallery" },
     { to: "/golden-moments", icon: Clock, label: "Golden Moments" },
     { to: "/search", icon: Search, label: "Search" },
-    ...(user ? [{ to: "/profile", icon: User, label: "Profile" }] : [{ to: "/auth", icon: LogIn, label: "Sign In" }]),
+    { to: "/profile", icon: User, label: "Profile" },
   ];
 
   const isActiveRoute = (path: string) => {

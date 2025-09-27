@@ -14,128 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      interactions: {
-        Row: {
-          comment_text: string | null
-          created_at: string
-          id: string
-          post_id: string
-          type: Database["public"]["Enums"]["interaction_type"]
-          user_id: string
-        }
-        Insert: {
-          comment_text?: string | null
-          created_at?: string
-          id?: string
-          post_id: string
-          type: Database["public"]["Enums"]["interaction_type"]
-          user_id: string
-        }
-        Update: {
-          comment_text?: string | null
-          created_at?: string
-          id?: string
-          post_id?: string
-          type?: Database["public"]["Enums"]["interaction_type"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "interactions_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      posts: {
-        Row: {
-          category: string | null
-          content: string | null
-          created_at: string
-          description: string | null
-          id: string
-          location: string | null
-          media_url: string | null
-          tags: string[] | null
-          title: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          category?: string | null
-          content?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          location?: string | null
-          media_url?: string | null
-          tags?: string[] | null
-          title?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          category?: string | null
-          content?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          location?: string | null
-          media_url?: string | null
-          tags?: string[] | null
-          title?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          achievements: string[] | null
-          avatar_url: string | null
-          bio: string | null
-          created_at: string
-          display_name: string | null
-          id: string
-          total_comments_received: number | null
-          total_likes_received: number | null
-          total_uploads: number | null
-          updated_at: string
-          user_id: string
-          username: string | null
-        }
-        Insert: {
-          achievements?: string[] | null
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          total_comments_received?: number | null
-          total_likes_received?: number | null
-          total_uploads?: number | null
-          updated_at?: string
-          user_id: string
-          username?: string | null
-        }
-        Update: {
-          achievements?: string[] | null
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          total_comments_received?: number | null
-          total_likes_received?: number | null
-          total_uploads?: number | null
-          updated_at?: string
-          user_id?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
@@ -144,7 +23,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      interaction_type: "like" | "comment" | "share" | "save"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -271,8 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      interaction_type: ["like", "comment", "share", "save"],
-    },
+    Enums: {},
   },
 } as const
